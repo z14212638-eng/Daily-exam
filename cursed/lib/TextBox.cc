@@ -169,9 +169,6 @@ bool TextBox::onKeyPress(
 			submitAction(string_text);
 		handled = true;
 	}
-	else if (event.key == ) {
-	
-	}
 	else
 	if (event.key == KEY_BACKSPACE)
 	{
