@@ -14,7 +14,7 @@ The author provide a wrapped module for us to build a window using cursed in TUI
 
 So I took a few steps to polish and organize the whole project.
 
-![1783676940630](image/README/1783676940630.png)
+![picture](figures/pic.png)
 
 ### Feature
 
