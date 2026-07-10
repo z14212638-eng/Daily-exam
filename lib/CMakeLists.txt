@@ -19,4 +19,6 @@ install(
 
 install(
 	DIRECTORY "../include/cursed"
+	DIRECTORY "../include/addition"
 	DESTINATION "include")
+

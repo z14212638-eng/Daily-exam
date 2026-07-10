@@ -90,7 +90,8 @@ Label::Label(
 	int height,
 	int width,
 	int y,
-	int x ) : Component(parent, height, width, y, x, false), text(text)
+	int x ) : Component(parent, height, width, y, x, false), text(text),
+		themeId(THEME_LABEL)
 {
 
 }
@@ -104,10 +105,11 @@ Label::~Label()
 
 void Label::paint()
 {
-	setBackground(THEME_LABEL);
-	setStyle(THEME_LABEL);
+	setBackground(themeId);
+	setStyle(themeId);
+	wclear((WINDOW*) content);
 
-	render(text, y, x);
+	render(text, 0, 0);
 	touchwin((WINDOW*) content);
 }
 
@@ -129,6 +131,18 @@ bool Label::onKeyPress(
 const std::wstring &Label::getText() const
 {
 	return text;
+}
+
+void Label::setText(
+	const std::wstring &text )
+{
+	this->text = text;
+}
+
+void Label::setTheme(
+	int themeId )
+{
+	this->themeId = themeId;
 }
 
 } // namespace cursed

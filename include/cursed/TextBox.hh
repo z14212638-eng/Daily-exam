@@ -19,6 +19,8 @@
 
 
 #include <cursed/Component.hh>
+#include <addition/history.h>
+#include <functional>
 #include <string>
 
 
@@ -46,12 +48,21 @@ class TextBox : public Component
 		bool onKeyPress(
 			const KeyEvent &event );
 
-		const std::wstring &getText() const;
+			const std::wstring &getText() const;
 
-	protected:
-		std::wstring text;
-		int position;
-		int start, end, cursor;
+			void setOnSubmit(
+				std::function<void(const std::string&)> action );
+
+			// void Waiting_for_input();
+
+			void setText(std::string text);
+			void clear();
+
+			protected:
+			std::wstring text;
+			int position;
+			int start, end, cursor;
+			std::function<void(const std::string&)> submitAction;
 
 		void moveCursor(
 			int direction );

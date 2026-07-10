@@ -105,6 +105,7 @@ struct Theme
 #define THEME_TEXTBOX_CURSOR           0x0B
 #define THEME_CHECKBOX                 0x0C
 #define THEME_CHECKBOX_ACTIVE          0x0D
+#define THEME_LABEL_TIME               0x0E
 
 
 #define ESCAPER             '\x1B'

@@ -77,6 +77,8 @@ static const ThemePair THEME_COLOR_SCHEME[] =
 	{ THEME_TEXTBOX_CURSOR,     TextColor::Black,     FillColor::Gray },
 	{ THEME_CHECKBOX,           TextColor::Black,     FillColor::Gray },
 	{ THEME_CHECKBOX_ACTIVE,    TextColor::White,     FillColor::Blue  },
+	{ THEME_LABEL_TIME,         TextColor::Green,     FillColor::Gray },
+	{ 0,                        TextColor::Black,     FillColor::Black },
 };
 
 static const ThemeStyle THEME_COLOR_STYLES[] =
@@ -95,6 +97,7 @@ static const ThemeStyle THEME_COLOR_STYLES[] =
 	{ THEME_TEXTBOX_CURSOR,     COLOR_PAIR(THEME_TEXTBOX_CURSOR)     , 0 },
 	{ THEME_CHECKBOX,           COLOR_PAIR(THEME_CHECKBOX)           , 0 },
 	{ THEME_CHECKBOX_ACTIVE,    COLOR_PAIR(THEME_CHECKBOX_ACTIVE)    , 0 },
+	{ THEME_LABEL_TIME,         COLOR_PAIR(THEME_LABEL_TIME)         , A_BOLD },
 	{ 0,                        0                                    , 0 },
 };
 
@@ -115,6 +118,7 @@ static const ThemeStyle THEME_MONO_STYLES[] =
 	{ THEME_TEXTBOX_CURSOR,     COLOR_PAIR(THEME_TEXTBOX_CURSOR)     , 0 },
 	{ THEME_CHECKBOX,           COLOR_PAIR(THEME_CHECKBOX)           , 0 },
 	{ THEME_CHECKBOX_ACTIVE,    COLOR_PAIR(THEME_CHECKBOX_ACTIVE)    , A_REVERSE },
+	{ THEME_LABEL_TIME,         COLOR_PAIR(THEME_LABEL_TIME)         , A_BOLD },
 	{ 0,                        0                                    , 0 },
 };
 

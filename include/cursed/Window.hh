@@ -22,6 +22,7 @@
 #include <cursed/Component.hh>
 #include <cursed/KeyEventListener.hh>
 #include <cursed/Paintable.hh>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -87,6 +88,10 @@ class Window : public Paintable, public KeyEventListener
 		void setActive(
 			int index );
 
+		void setTimer(
+			int intervalMilliseconds,
+			std::function<bool()> action );
+
 		bool onKeyPress(
 			const KeyEvent &event );
 
@@ -102,6 +107,8 @@ class Window : public Paintable, public KeyEventListener
 		int result;
 		bool allStatic;
 		Application &app;
+		int timerIntervalMilliseconds;
+		std::function<bool()> timerAction;
 
 	private:
 		void activateNext(

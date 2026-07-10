@@ -48,10 +48,17 @@ class Label : public Component
 
 		const std::wstring &getText() const;
 
+			void setText(
+				const std::wstring &text );
+
+			void setTheme(
+				int themeId );
+
 	protected:
 		int width;
 		std::wstring text;
 		int position;
+		int themeId;
 
 		void render(
 			const std::wstring &text,

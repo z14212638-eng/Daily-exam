@@ -4,34 +4,24 @@
 #include <addition/utils.h>
 #include <cursed/Application.hh>
 #include <addition/input.h>
-#include <ctime>
+#include <addition/tools.h>
 #include <cwchar>
 #include <ncurses.h>
 #include <sstream>
-#include <stdexcept>
 /**
- * @brief This function is used to force stop the Tui thread
+ * @brief All the settings are defined in the namespace cursed
  *
  */
 
 namespace cursed {
 
-namespace {
-
-std::wstring CurrentTime()
-{
-  const std::time_t now = std::time(nullptr);
-  std::tm local_time;
-  localtime_r(&now, &local_time);
-
-  wchar_t buffer[9];
-  if (std::wcsftime(buffer, sizeof(buffer) / sizeof(buffer[0]), L"%H:%M:%S",
-                    &local_time) == 0)
-    return L"--:--:--";
-
-  return buffer;
-}
-
+    /**
+     * @brief BoxLine is used to draw the shape like  | xxxx text xxxx |
+     * 
+     * @param text the centered text 
+     * @param width the width of the dialogue window
+     * @return std::wstring 
+     */
 std::wstring BoxLine(const std::wstring &text, size_t width)
 {
   std::wstring content = text;
@@ -41,6 +31,13 @@ std::wstring BoxLine(const std::wstring &text, size_t width)
   return L"|" + content + std::wstring(width - content.length(), L' ') + L"|";
 }
 
+/**
+ * @brief ResultBox is used for the presentation of the result, in some special 
+ * circumstances the result would vary according to the input, such as "/history"
+ * 
+ * @param order referring to the exact order in the input textbox
+ * @return std::wstring 
+ */
 std::wstring ResultBox(const std::string &order)
 {
   static const size_t inner_width = 52;
@@ -57,9 +54,11 @@ std::wstring ResultBox(const std::string &order)
   if (!clean_order.empty())
     text += m_StringToWide(clean_order);
   
+  /* pre-defined output as we actually do not use a real agent */
   std::wstring notice = L"## `429` Too many Requests";
   std::wstring response = L"**Sever Busy Try Later QAQ**";
 
+  /* history command */
   if (clean_order == "/history")
   {
     std::wstring output = border + L"\n" + BoxLine(text, inner_width) + L"\n";
@@ -85,6 +84,7 @@ std::wstring ResultBox(const std::string &order)
 
     return output + border;
   }
+  /* General situation: commands that is not pre-defined */
   else if(!clean_order.empty())
   {
       return border + L"\n" +
@@ -105,8 +105,10 @@ std::wstring ResultBox(const std::string &order)
 
 }
 
-} // namespace
-
+/**
+ * @brief Initiate the Dialogue TUI, including UI-build, logic setting
+ * 
+ */
 void Dia_Tui::Initiate() {
 
   const int screen_height = this->screenHeight();
@@ -115,34 +117,24 @@ void Dia_Tui::Initiate() {
   int y = (screen_height - window_height - 1) / 2;
   int x = (screen_width - window_width - 2) / 2;
 
-  Window window(*this, L"DeepSleep Agent", window_height, window_width, y, x);
+  Window window(*this, L">>>>> [DeepSleep] <<<<<", window_height, window_width, y, x);
 
-  const char *home_env = std::getenv("HOME");
-  const std::string home_path = home_env == nullptr ? "" : home_env;
+  /* Get the Absolute Path of Home and current working directory */
+  const std::string home_path = Get_home_path();
   std::string current_path = Get_Current_Path();
+  current_path = Replace_Prefix(home_path, current_path);
+  const std::wstring current_path_m = m_StringToWide(current_path);
+
+  /* Display the text */
   std::ostringstream oss;
   oss << "Result of the current dialogue:"
       << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
       << "State\n\n"
       << "PATH: " << "\n\n"
       << "User Input (Begin with /):";
-
   const std::string window_label = oss.str();
   const std::wstring window_label_m = m_StringToWide(window_label);
 
-  current_path = Replace_Prefix(home_path, current_path);
-
-  const std::wstring current_path_m = m_StringToWide(current_path);
-  //   Label label(
-  //       window,
-  //       L"Result of the current
-  //       dialogue:\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n" "State\n\n"
-  //       "State:" current_path "\n\n"
-  //       "> Input: ",              // text
-  //       window.getClientHeight(), // height
-  //       window.getClientWidth(),  // width
-  //       0,                        // y
-  //       0);                       // x
   Label label(window,
               window_label_m,           // text
               window.getClientHeight(), // height
@@ -150,10 +142,12 @@ void Dia_Tui::Initiate() {
               0,                        // y
               0);                       // x
 
-  Label result_box(window, ResultBox(""), 7, 54, 1, 1);
+  Label result_box(window, ResultBox(""), 14, 54, 1, 1);
 
+  /* Display the current diretory */
   TextBox statebox(window, current_path_m, 1, 40, 20, 9);
 
+  /* Input textbox */
   TextBox textbox(window,
                   L">", // text
                   5,                       // height
@@ -179,6 +173,7 @@ void Dia_Tui::Initiate() {
       
 
       result_box.setText(ResultBox(display_order));
+      /* Clear the input box before next operation*/
       textbox.clear();
   });
 

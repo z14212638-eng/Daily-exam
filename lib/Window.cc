@@ -15,6 +15,9 @@
  */
 
 #include <cursed/Window.hh>
+#include <algorithm>
+#include <chrono>
+#include <limits>
 #include <ncursesw/curses.h>
 
 
@@ -59,6 +62,8 @@ void Window::initialize(
 	this->result = -1;
 	this->activeComponent = componentList.end();
 	this->allStatic = true;
+	this->timerIntervalMilliseconds = 0;
+	this->timerAction = std::function<bool()>();
 
 	if (title != NULL)
 		this->title = *title;
@@ -206,7 +211,7 @@ Component *Window::getActive()
 void Window::setActive(
 	Component *control )
 {
-	activeComponent = componentList.end();
+	auto next = componentList.end();
 
 	if (control != NULL)
 	{
@@ -214,9 +219,22 @@ void Window::setActive(
 		for (; it != componentList.end(); ++it)
 		{
 			if (*it == control)
-				activeComponent = it;
+			{
+				next = it;
+				break;
+			}
 		}
 	}
+
+	if (activeComponent == next) return;
+
+	if (activeComponent != componentList.end())
+		(*activeComponent)->onActive(false);
+
+	activeComponent = next;
+
+	if (activeComponent != componentList.end())
+		(*activeComponent)->onActive(true);
 }
 
 
@@ -231,9 +249,24 @@ void Window::setActive(
 	int index )
 {
 	if (index < 0 || index >= (int) componentList.size())
-		activeComponent = componentList.end();
+		setActive((Component*) NULL);
 	else
-		activeComponent = componentList.begin() + index;
+		setActive(componentList[index]);
+}
+
+void Window::setTimer(
+	int intervalMilliseconds,
+	std::function<bool()> action )
+{
+	if (intervalMilliseconds <= 0 || !action)
+	{
+		timerIntervalMilliseconds = 0;
+		timerAction = std::function<bool()>();
+		return;
+	}
+
+	timerIntervalMilliseconds = intervalMilliseconds;
+	timerAction = action;
 }
 
 
@@ -254,15 +287,48 @@ int Window::showModal()
 	(*activeComponent)->paint();
 
 	this->refresh();
-	(*activeComponent)->refresh();
 	doupdate();
+
+	typedef std::chrono::steady_clock Clock;
+	Clock::time_point nextTimer;
+	if (timerAction)
+		nextTimer = Clock::now() + std::chrono::milliseconds(timerIntervalMilliseconds);
 
 	while (result < 0)
 	{
+		if (timerAction)
+		{
+			const Clock::time_point now = Clock::now();
+			const std::chrono::milliseconds remaining =
+				std::chrono::duration_cast<std::chrono::milliseconds>(nextTimer - now);
+			const long long remainingMilliseconds =
+				static_cast<long long>(remaining.count());
+			const long long wait = std::max(0LL, remainingMilliseconds + 1);
+			wtimeout(stdscr, (int) std::min(
+				wait, (long long) std::numeric_limits<int>::max()));
+		}
+		else
+			wtimeout(stdscr, -1);
+
 		event.modifiers = 0;
 		event.key = wgetch(stdscr);
 
-		if (onKeyPress(event))
+		bool repaint = false;
+		if (event.key != ERR)
+			repaint = onKeyPress(event);
+
+		if (timerAction && Clock::now() >= nextTimer)
+		{
+			repaint = timerAction() || repaint;
+
+			do
+			{
+				nextTimer += std::chrono::milliseconds(timerIntervalMilliseconds);
+			}
+			while (Clock::now() >= nextTimer);
+		}
+
+		if (repaint)
 		{
 			this->paint();
 			this->refresh();
@@ -270,6 +336,7 @@ int Window::showModal()
 		}
 	}
 
+	wtimeout(stdscr, -1);
 	return result;
 }
 
@@ -283,7 +350,13 @@ void Window::refresh()
 
 	// refresh all controls
 	auto it = componentList.begin();
-	for (; it != componentList.end(); ++it) (*it)->refresh();
+	for (; it != componentList.end(); ++it)
+	{
+		if (activeComponent != it) (*it)->refresh();
+	}
+
+	if (activeComponent != componentList.end())
+		(*activeComponent)->refresh();
 }
 
 

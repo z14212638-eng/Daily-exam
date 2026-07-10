@@ -21,6 +21,7 @@
 #include <cursed/Window.hh>
 #include <cursed/Component.hh>
 #include <cursed/KeyEventListener.hh>
+#include <functional>
 #include <string>
 
 
@@ -30,18 +31,18 @@ namespace cursed {
 class Button;
 
 
-typedef void (ButtonPressed)( Button &object );
+typedef std::function<void(Button &object)> ButtonPressed;
 
 
 class Button : public Component
 {
-	public:
-		Button(
-			Window &parent,
-			const std::wstring &label,
-			int y,
-			int x,
-			ButtonPressed *action = NULL );
+		public:
+			Button(
+				Window &parent,
+				const std::wstring &label,
+				int y,
+				int x,
+				ButtonPressed action = ButtonPressed() );
 
 		void paint();
 
@@ -56,9 +57,9 @@ class Button : public Component
 
 		virtual void onPressed();
 
-	private:
-		std::wstring text;
-		ButtonPressed *action;
+		private:
+			std::wstring text;
+			ButtonPressed action;
 };
 
 

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include "addition/history.h"
+#include "addition/utils.h"
+#include "cursed/Component.hh"
 #include <cursed/TextBox.hh>
 #include <cursed/Text.hh>
 #include <ncursesw/curses.h>
@@ -28,7 +31,8 @@ TextBox::TextBox(
 	int height,
 	int width,
 	int y,
-	int x ) : Component(parent, 1, width, y, x, true), text(text)
+	int x ) : Component(parent, 1, width, y, x, true), text(text),
+		submitAction()
 {
 	(void) height;
 
@@ -84,6 +88,12 @@ const std::wstring &TextBox::getText() const
 	return text;
 }
 
+void TextBox::setOnSubmit(
+	std::function<void(const std::string&)> action )
+{
+	submitAction = action;
+}
+
 
 void TextBox::onActive(
 	bool state )
@@ -128,12 +138,40 @@ void TextBox::moveCursor(
 	position = start + cursor;
 }
 
+void
+TextBox::setText(std::string m_text)
+{
+	text = m_StringToWide(m_text);
+	position = (int) text.length();
+	start = 0;
+	cursor = position;
+	moveCursor(0);
+}
+
+void
+TextBox::clear()
+{
+	setText(">");
+}
 
 bool TextBox::onKeyPress(
 	const KeyEvent &event )
 {
 	bool handled = false;
-
+	if (event.key == KEY_ENTER || event.key == '\x0A' || event.key == '\x0D')
+	{
+		std::string string_text = m_WideToString(text);
+		current_order = string_text;
+		history.emplace_back(string_text);
+		notify_ready = true;
+		if (submitAction)
+			submitAction(string_text);
+		handled = true;
+	}
+	else if (event.key == KEY_EXIT) {
+		text.clear();
+	}
+	else
 	if (event.key == KEY_BACKSPACE)
 	{
 		if (position > 0)

@@ -16,6 +16,7 @@
 
 #include <cursed/Button.hh>
 #include <ncursesw/curses.h>
+#include <utility>
 
 
 namespace cursed {
@@ -26,8 +27,8 @@ Button::Button(
 	const std::wstring &label,
 	int y,
 	int x,
-	ButtonPressed *action ) : Component(parent, 1, (int)label.length() + 4, y, x),
-		text(label), action(action)
+	ButtonPressed action ) : Component(parent, 1, (int)label.length() + 4, y, x),
+		text(label), action(std::move(action))
 {
 	// nothing to do
 }
@@ -77,7 +78,7 @@ int Button::scale(
 
 void Button::onPressed()
 {
-	if (action != NULL) action(*this);
+	if (action) action(*this);
 }
 
 
